@@ -1,0 +1,15 @@
+AES 
+[1] QiuJYu. 密码学基础: AES加密算法[DB/OL]. https://bbs.pediy.com/thread-253884.htm#%E7%AC%AC%E4%B8%80%E8%8A%82%EF%BC%9Aaes%E7%AE%97%E6%B3%95%E7%AE%80%E4%BB%8B. 看雪论坛. 2019-08-15.
+[2] TimeShatter. AES加密算法的详细介绍与实现[DB/OL]. https://zhuanlan.zhihu.com/p/42629724. CSDN. 2017-02-19.
+[3]Enrique Zabala. Rijndael Cipher[DB/OL]. http://coolshell.cn/wp-content/uploads/2010/10/rijndael_ingles2004.swf.
+ECC Elliptic Curve Cryptography 
+https://www.bilibili.com/video/BV1BY411M74G?spm_id_from=333.788.videopod.sections&vd_source=9943ced6e8e559ad32b48fdac7a46a6c
+DH Diffie–Hellman exchange
+https://www.bilibili.com/video/BV1sY4y1p78s?spm_id_from=333.788.videopod.sections&vd_source=9943ced6e8e559ad32b48fdac7a46a6c 
+TCP handshake and socket port
+https://www.bilibili.com/video/BV18h41187Ep/?spm_id_from=333.337.search-card.all.click&vd_source=9943ced6e8e559ad32b48fdac7a46a6c
+WPA handshake
+https://networklessons.com/cisco/ccnp-encor-350-401/wpa-and-wpa2-4-way-handshake
+https://nicholastsmith.wordpress.com/2016/11/15/wpa2-key-derivation-with-anaconda-python/
+
+AI Claude 

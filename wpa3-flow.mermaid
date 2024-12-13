@@ -1,0 +1,50 @@
+graph TD
+    subgraph "Initialization Phase"
+        A1[AP Initialization] --> A2[Generate ECDH Key Pair<br/>Curve: SECP384R1]
+        A1 --> A3[Generate ANonce<br/>using os.urandom<br/>32 bytes]
+        
+        C1[Client Initialization] --> C2[Generate ECDH Key Pair<br/>Curve: SECP384R1]
+        C1 --> C3[Generate SNonce<br/>using os.urandom<br/>32 bytes]
+    end
+
+    subgraph "Four-way Handshake"
+        %% Message 1
+        A4[AP: Prepare Message 1] --> A5[Serialize Public Key<br/>DER Encoding]
+        A5 --> A6[Send ANonce + Public Key]
+        A6 -->|Message 1| C4[Client: Process Message 1]
+        
+        %% Message 2
+        C4 --> C5[Client: Prepare Message 2]
+        C5 --> C6[Serialize Public Key<br/>DER Encoding]
+        C6 -->|Message 2| A7[AP: Process Message 2]
+        
+        %% Key Derivation
+        subgraph "Key Generation (Both Sides)"
+            K1[Compute Shared Secret<br/>using ECDHE]
+            K2[Derive PMK<br/>PBKDF2-HMAC-SHA256<br/>4096 iterations]
+            K3[Derive PTK<br/>HKDF-SHA256]
+            K1 --> K2 --> K3
+        end
+        
+        %% Message 3
+        A7 --> A8[AP: Generate Message 3]
+        A8 --> A9[Encrypt Confirmation<br/>AES-GCM]
+        A9 -->|Message 3| C7[Client: Verify Message 3]
+        
+        %% Message 4
+        C7 --> C8[Client: Generate Message 4]
+        C8 --> C9[Encrypt Confirmation<br/>AES-GCM]
+        C9 -->|Message 4| A10[AP: Verify Message 4]
+    end
+
+    subgraph "Secure Communication"
+        S1[Established Secure Channel]
+        S2[Data Encryption<br/>AES-GCM<br/>IV: 12 bytes]
+        S3[Data Exchange]
+        S1 --> S2 --> S3
+    end
+
+    %% Connect the phases
+    A3 --> A4
+    C3 --> C4
+    A10 --> S1

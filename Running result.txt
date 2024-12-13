@@ -1,0 +1,137 @@
+=== Initializing WPA3 Access Point ===
+
+AP - Generating EC key pair...
+AP - Private key created: 97793
+AP - Public key created: 28070
+
+AP - Using SSID: TestNetwork
+AP - Using password: TestPassword123
+
+AP - Deriving PMK using password and SSID...
+AP - PMK derived: 7c3254f079948812...
+AP - MAC Address: 001122334455
+
+AP - Listening on localhost:12345
+
+=== Initializing WPA3 Client ===
+
+Client - Generating EC key pair...
+Client - Private key created: 68608
+Client - Public key created: 45810
+
+Client - Using SSID: TestNetwork
+Client - Using password: TestPassword123
+
+Client - Deriving PMK using password and SSID...
+Client - PMK derived: 7c3254f079948812...
+Client - MAC Address: 66778899aabb
+
+Client - Connecting to localhost:12345
+
+=== Starting WPA3 Handshake (Client Side) ===
+
+Step 1: ANonce Reception
+
+AP - New connection from ('127.0.0.1', 59908)
+
+=== Starting WPA3 Handshake (AP Side) ===
+
+Step 1: ANonce Generation and Exchange
+AP - Generated nonce: 56f1923ef8eadc38...
+Client - ANonce received from AP
+AP - ANonce sent to client
+
+Step 2: SNonce Generation and Exchange
+Client - Generated nonce: 4abfecba421cce6a...
+Client - SNonce sent to AP
+
+Step 3: PTK Derivation
+
+Step 2: SNonce ReceptionClient - MAC address sent to AP
+
+
+Client - Deriving PTK...
+AP - Received SNonce from client
+
+Step 3: PTK Derivation
+AP - Client MAC received: 66778899aabb
+Client - PTK derived: fb23c780054f1bee...
+
+Step 4: Processing Encrypted Communication
+
+AP - Deriving PTK...
+AP - PTK derived: fb23c780054f1bee...
+
+Step 4: Testing Encrypted Communication
+AP - Sending encrypted message: WPA3 Handshake completed successfully! This is a test message from the AP.
+
+AP - Encrypting message using AES key: fb23c780054f1bee...
+AP - Message encrypted: e064644575afc65aaa045039719ea03c...
+
+Client - Decrypting message using AES key: fb23c780054f1bee...
+
+Step 5: Receiving Client's Response
+Client - Message decrypted: WPA3 Handshake completed successfully! This is a test message from the AP.
+
+Step 5: Sending Response
+Client - Sending encrypted response: WPA3 Handshake acknowledged by client! Connection established successfully.
+
+Client - Encrypting message using AES key: fb23c780054f1bee...
+Client - Message encrypted: d7db79ae9007642ff64ed8c8430baef1...
+
+AP - Decrypting message using AES key: fb23c780054f1bee...
+
+Step 6: Additional Message Exchange
+AP - Message decrypted: WPA3 Handshake acknowledged by client! Connection established successfully.
+
+Step 6: Additional Message Exchange
+
+AP - Sending message: AP Test Message #1: The connection is secure!
+
+AP - Encrypting message using AES key: fb23c780054f1bee...
+AP - Message encrypted: 248151f731d0580d839c967c8a330320...
+
+Client - Decrypting message using AES key: fb23c780054f1bee...
+Client - Message decrypted: AP Test Message #1: The connection is secure!
+
+Client - Sending response: Client Test Response #1: Message received and decrypted successfully!
+
+Client - Encrypting message using AES key: fb23c780054f1bee...
+Client - Message encrypted: 44b52e6fdf10070af97b7462ca4de0e0...
+
+AP - Decrypting message using AES key: fb23c780054f1bee...
+AP - Message decrypted: Client Test Response #1: Message received and decrypted successfully!
+
+AP - Sending message: AP Test Message #2: The connection is secure!
+
+AP - Encrypting message using AES key: fb23c780054f1bee...
+AP - Message encrypted: 5e0cd3470c2ebbb3106762f0f80b7473...
+
+Client - Decrypting message using AES key: fb23c780054f1bee...
+Client - Message decrypted: AP Test Message #2: The connection is secure!
+
+Client - Sending response: Client Test Response #2: Message received and decrypted successfully!
+
+Client - Encrypting message using AES key: fb23c780054f1bee...
+Client - Message encrypted: 8de460e4b2ee139172ece5049f247b16...
+
+AP - Decrypting message using AES key: fb23c780054f1bee...
+AP - Message decrypted: Client Test Response #2: Message received and decrypted successfully!
+
+AP - Sending message: AP Test Message #3: The connection is secure!
+
+AP - Encrypting message using AES key: fb23c780054f1bee...
+AP - Message encrypted: 5285dceb0b842ebaab6a629113f8b9de...
+
+Client - Decrypting message using AES key: fb23c780054f1bee...
+Client - Message decrypted: AP Test Message #3: The connection is secure!
+
+Client - Sending response: Client Test Response #3: Message received and decrypted successfully!
+
+Client - Encrypting message using AES key: fb23c780054f1bee...
+Client - Message encrypted: 631c66fcc6a13c31d895cff4aa0c740c...
+
+AP - Decrypting message using AES key: fb23c780054f1bee...
+
+Client - Connection closed
+AP - Message decrypted: Client Test Response #3: Message received and decrypted successfully!
