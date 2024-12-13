@@ -1,3 +1,4 @@
+# [Previous imports remain the same]
 import socket
 import secrets
 import hashlib
@@ -8,6 +9,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.backends import default_backend
 
+# [WPA3Device class remains unchanged]
 class WPA3Device:
     def __init__(self, is_ap=False):
         self.is_ap = is_ap
@@ -20,7 +22,7 @@ class WPA3Device:
         self.ptk = None
         self.anonce = None
         self.snonce = None
-        
+    
     def generate_nonce(self):
         nonce = secrets.token_bytes(32)
         print(f"{'AP' if self.is_ap else 'Client'} - Generated nonce: {binascii.hexlify(nonce[:8]).decode()}...")
@@ -119,56 +121,64 @@ class WPA3Server:
         print(f"AP - MAC Address: {binascii.hexlify(self.ap_mac).decode()}")
         
     def start(self):
+        print("\n=== Starting TCP Server ===")
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_socket.bind((self.host, self.port))
         server_socket.listen(1)
-        print(f"\nAP - Listening on {self.host}:{self.port}")
+        print(f"TCP Server - Listening on {self.host}:{self.port}")
+        print("TCP Server - Waiting for TCP 3-way handshake...")
         
         while True:
+            print("\nTCP Server - Ready to accept connections")
+            # TCP 3-way handshake starts here
             client_socket, addr = server_socket.accept()
-            print(f"\nAP - New connection from {addr}")
+            print(f"TCP Server - Received SYN from {addr}")
+            print("TCP Server - Sent SYN-ACK")
+            print(f"TCP Server - Received ACK from {addr}")
+            print("=== TCP 3-way Handshake Completed ===\n")
+            
+            print("Starting WPA3 4-way handshake...")
             self.handle_client(client_socket)
             
     def handle_client(self, client_socket):
         try:
             print("\n=== Starting WPA3 Handshake (AP Side) ===")
             
-            # Step 1: Generate and send ANonce
-            print("\nStep 1: ANonce Generation and Exchange")
+            # WPA3 Message 1
+            print("\nWPA3 Message 1: ANonce Generation and Exchange")
             self.device.anonce = self.device.generate_nonce()
             client_socket.send(self.device.anonce)
             print("AP - ANonce sent to client")
             
-            # Step 2: Receive SNonce
-            print("\nStep 2: SNonce Reception")
+            # WPA3 Message 2
+            print("\nWPA3 Message 2: SNonce Reception")
             self.device.snonce = client_socket.recv(32)
             print("AP - Received SNonce from client")
             
-            # Step 3: PTK Derivation
-            print("\nStep 3: PTK Derivation")
             sta_mac = client_socket.recv(6)
             print(f"AP - Client MAC received: {binascii.hexlify(sta_mac).decode()}")
+            
+            # WPA3 Message 3
+            print("\nWPA3 Message 3: PTK Derivation and First Encrypted Message")
             self.device.derive_ptk(
                 self.device.anonce,
                 self.device.snonce,
                 self.ap_mac,
                 sta_mac
             )
-            
-            # Step 4: Test Encrypted Communication
-            print("\nStep 4: Testing Encrypted Communication")
             test_message = "WPA3 Handshake completed successfully! This is a test message from the AP."
             print(f"AP - Sending encrypted message: {test_message}")
             encrypted = self.device.encrypt_message(test_message)
             client_socket.send(encrypted)
             
-            # Step 5: Receive Client's Response
-            print("\nStep 5: Receiving Client's Response")
+            # WPA3 Message 4
+            print("\nWPA3 Message 4: Receiving Client's Encrypted Response")
             encrypted_response = client_socket.recv(1024)
             decrypted = self.device.decrypt_message(encrypted_response)
+            print("=== WPA3 4-way Handshake Completed ===\n")
             
-            # Step 6: Additional Message Exchange
-            print("\nStep 6: Additional Message Exchange")
+            # Additional message exchange
+            print("\nStarting Post-Handshake Communication")
             for i in range(3):
                 message = f"AP Test Message #{i+1}: The connection is secure!"
                 print(f"\nAP - Sending message: {message}")
@@ -199,28 +209,32 @@ class WPA3Client:
         print(f"Client - MAC Address: {binascii.hexlify(self.sta_mac).decode()}")
         
     def connect(self):
+        print("\n=== Starting TCP Client ===")
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            print(f"\nClient - Connecting to {self.host}:{self.port}")
+            print(f"TCP Client - Initiating 3-way handshake with {self.host}:{self.port}")
+            print("TCP Client - Sending SYN")
             client_socket.connect((self.host, self.port))
-            print("\n=== Starting WPA3 Handshake (Client Side) ===")
+            print("TCP Client - Received SYN-ACK")
+            print("TCP Client - Sent ACK")
+            print("=== TCP 3-way Handshake Completed ===\n")
             
-            # Step 1: Receive ANonce
-            print("\nStep 1: ANonce Reception")
+            print("Starting WPA3 4-way handshake...")
+            
+            # WPA3 Message 1
+            print("\nWPA3 Message 1: Receiving ANonce")
             self.device.anonce = client_socket.recv(32)
             print("Client - ANonce received from AP")
             
-            # Step 2: Generate and send SNonce
-            print("\nStep 2: SNonce Generation and Exchange")
+            # WPA3 Message 2
+            print("\nWPA3 Message 2: SNonce Generation and Exchange")
             self.device.snonce = self.device.generate_nonce()
             client_socket.send(self.device.snonce)
-            print("Client - SNonce sent to AP")
-            
-            # Step 3: Send MAC and derive PTK
-            print("\nStep 3: PTK Derivation")
             client_socket.send(self.sta_mac)
-            print("Client - MAC address sent to AP")
+            print("Client - SNonce and MAC address sent to AP")
             
+            # WPA3 Message 3
+            print("\nWPA3 Message 3: PTK Derivation and Receiving First Encrypted Message")
             ap_mac = b'\x00\x11\x22\x33\x44\x55'
             self.device.derive_ptk(
                 self.device.anonce,
@@ -228,21 +242,19 @@ class WPA3Client:
                 ap_mac,
                 self.sta_mac
             )
-            
-            # Step 4: Receive and Process Encrypted Message
-            print("\nStep 4: Processing Encrypted Communication")
             encrypted = client_socket.recv(1024)
             decrypted = self.device.decrypt_message(encrypted)
             
-            # Step 5: Send Response
-            print("\nStep 5: Sending Response")
+            # WPA3 Message 4
+            print("\nWPA3 Message 4: Sending Encrypted Response")
             response = "WPA3 Handshake acknowledged by client! Connection established successfully."
             print(f"Client - Sending encrypted response: {response}")
             encrypted_response = self.device.encrypt_message(response)
             client_socket.send(encrypted_response)
+            print("=== WPA3 4-way Handshake Completed ===\n")
             
-            # Step 6: Additional Message Exchange
-            print("\nStep 6: Additional Message Exchange")
+            # Additional message exchange
+            print("\nStarting Post-Handshake Communication")
             for i in range(3):
                 encrypted = client_socket.recv(1024)
                 decrypted = self.device.decrypt_message(encrypted)
