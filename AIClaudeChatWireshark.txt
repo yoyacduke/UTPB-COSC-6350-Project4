@@ -1,0 +1,32 @@
+Looking at this packet (#411), I can analyze its key characteristics:
+
+This is an encrypted WPA3 message packet, evident from:
+
+analyze packet 411
+
+411	49.602401	127.0.0.1	127.0.0.1	TCP	140	12345 → 60414 [PSH, ACK] Seq=33 Ack=39 Win=2161152 Len=96
+Length: 96 bytes of data payload
+Port: From 12345 (server) to 60414 (client)
+Flags: PSH, ACK (Push and Acknowledgment)
+Encrypted Data: 6bb05d175c1f27d11c36e4eabe7c734775f05d3a7507d8b9258df2cd64d851b658316608055654...
+
+
+Specific Details:
+
+
+Source Port: 12345 (your WPA3 server)
+Destination Port: 60414 (your client)
+Sequence Number: 33
+Acknowledgment Number: 39
+Window Size: 2161152
+Direction: Server to Client
+
+
+Given the payload size (96 bytes) and the direction, this is likely one of the encrypted messages during the post-handshake communication phase. Based on your code, it's probably one of these messages:
+
+pythonCopymessage = f"AP Test Message #{i+1}: The connection is secure!"
+The larger size (96 bytes) indicates this is encrypted data because:
+
+It includes the IV (16 bytes)
+The actual message is padded (PKCS7 padding)
+The message is encrypted using AES-CBC mode
