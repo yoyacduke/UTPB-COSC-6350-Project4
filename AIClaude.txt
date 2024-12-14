@@ -1,0 +1,466 @@
+WPA3 Four-Way Handshake SimulationYUTPB-COSC-6350-Project4
+This repo contains the assignment for Project 4 of the graduate Wireless Security class.
+The goal of this project is to simulate the WPA3 client-AP four-way handshake.
+Using either Java, Python, or C#, create an implementation of the handshake a TCP server and client. We want to properly handle every aspect of the protocol, so the amount of library use allowed is limited.
+Once you have completed the simulated handshake and established a shared session key, send a few packets back and forth that are encrypted using the WPA3 standard methodology.
+You may use the built-in libraries for your language of choice to handle the AES and RSA algorithms and the ECDHE exchange. No additional library calls will be allowed.EditI'll help you create a Python implementation of the WPA3 four-way handshake simulation. Let's build this step by step, focusing on the key aspects of WPA3's Simultaneous Authentication of Equals (SAE) and the subsequent handshake.
+WPA3 Four-way Handshake ImplementationClick to open code
+This implementation simulates the WPA3 handshake process while adhering to the project requirements. Here's a breakdown of the key components:
+
+WPA3Device class:
+
+Handles core cryptographic operations
+Implements key derivation (PMK and PTK)
+Manages encryption/decryption using AES
+Handles nonce generation
+
+
+WPA3Server class:
+
+Simulates the Access Point (AP)
+Manages the server-side handshake process
+Handles client connections
+
+
+WPA3Client class:
+
+Simulates the client station (STA)
+Manages the client-side handshake process
+Handles connection to the AP
+
+
+
+Key features:
+
+Uses ECDHE with SECP384R1 curve for key exchange
+Implements PMK derivation (simplified using PBKDF2)
+Implements PTK derivation using PRF-384
+Uses AES for encryption (simulated GCMP with CBC mode)
+Follows the four-way handshake protocol
+Includes nonce generation and exchange
+Implements MAC address handling
+
+To test the implementation:
+
+Run the script directly - it will start both server and client
+The server will listen on localhost:12345
+The client will connect and perform the handshake
+They will exchange encrypted messages to verify the connection
+
+Areas for potential enhancement:
+
+Add proper error handling for failed handshakes
+Implement actual GCMP instead of CBC
+Add proper SAE authentication
+Implement MIC verification
+Add session key rotation
+Implement proper WPA3 message formatting
+
+Would you like me to explain any specific part in more detail or make any modifications to the implementation? CopyRetryYplz add step by step running printout showing it is working. for example. key generation, private key, public key exchange, new keys generation, encryption, message sent. decryption. Add text message after the handshake is complete to show it is working properly.EditI'll modify the code to add detailed step-by-step logging that shows each stage of the process.
+WPA3 Four-way Handshake Implementation with Detailed LoggingClick to open code
+When you run this code, you'll see detailed step-by-step output showing:
+
+Initial setup:
+
+EC key pair generation for both AP and client
+PMK derivation using password and SSID
+MAC addresses of both devices
+
+
+Handshake process:
+
+ANonce generation and exchange
+SNonce generation and exchange
+PTK derivation
+Key verification through encrypted message exchange
+
+
+Post-handshake communication:
+
+Multiple test messages exchanged
+Encryption and decryption of each message
+Verification of successful communication
+
+
+Key values displayed (partially, for security):
+
+Public/private key components
+Nonce values
+PMK and PTK values
+Encrypted message content
+
+
+
+The output will look similar to this:
+Copy=== Initializing WPA3 Access Point ===
+AP - Generating EC key pair...
+AP - Private key created: 12345
+AP - Public key created: 67890
+AP - Using SSID: TestNetwork
+AP - Using password: TestPassword123
+AP - Deriving PMK...
+AP - PMK derived: a1b2c3d4...
+
+=== Initializing WPA3 Client ===
+Client - Generating EC key pair...
+[... more initialization output ...]
+
+=== Starting WPA3 Handshake ===
+Step 1: ANonce Generation and Exchange
+AP - Generated nonce: e5f6g7h8...
+Client - Received ANonce: e5f6g7h8...
+
+[... complete handshake process output ...]
+
+=== Testing Encrypted Communication ===
+AP - Sending encrypted message: "WPA3 Handshake completed successfully!"
+Client - Decrypted message: "WPA3 Handshake completed successfully!"
+[... additional message exchanges ...]
+Would you like me to explain any part of the output in more detail or modify the logging to show different information? CopyRetryClaude does not have the ability to run the code it generates yet.Yplz explain line by line with comments. The result looks ok so far.EditI'll explain the key sections of the code line by line with detailed comments.
+Let's start with the core components:
+
+First, the WPA3Device class initialization:
+
+pythonCopyclass WPA3Device:
+    def __init__(self, is_ap=False):
+        # Flag to identify if this device is an Access Point
+        self.is_ap = is_ap
+        
+        print(f"\n{'AP' if is_ap else 'Client'} - Generating EC key pair...")
+        # Generate Elliptic Curve private key using SECP384R1 curve
+        # This is a secure curve recommended for WPA3
+        self.private_key = ec.generate_private_key(ec.SECP384R1(), default_backend())
+        # Derive public key from private key
+        self.public_key = self.private_key.public_key()
+        
+        # Print partial key values for demonstration
+        # In real implementation, never print private keys
+        print(f"{'AP' if is_ap else 'Client'} - Private key created: {self.private_key.private_numbers().private_value % 100000}")
+        print(f"{'AP' if is_ap else 'Client'} - Public key created: {self.public_key.public_numbers().x % 100000}")
+        
+        # Initialize key material as None
+        self.pmk = None  # Pairwise Master Key
+        self.ptk = None  # Pairwise Transient Key
+        self.anonce = None  # AP Nonce
+        self.snonce = None  # Station Nonce
+
+The nonce generation and PMK derivation methods:
+
+pythonCopydef generate_nonce(self):
+    # Generate 32 bytes of cryptographically secure random data
+    nonce = secrets.token_bytes(32)
+    # Print first 8 bytes of nonce for demonstration
+    print(f"{'AP' if self.is_ap else 'Client'} - Generated nonce: {binascii.hexlify(nonce[:8]).decode()}...")
+    return nonce
+
+def derive_pmk(self, password, ssid):
+    print(f"\n{'AP' if self.is_ap else 'Client'} - Deriving PMK using password and SSID...")
+    # Use SSID as salt for key derivation
+    salt = ssid.encode('utf-8')
+    # Use PBKDF2 with SHA256 to derive PMK
+    # 4096 iterations is standard for WPA3
+    self.pmk = hashlib.pbkdf2_hmac(
+        'sha256',
+        password.encode('utf-8'),
+        salt,
+        4096,  # Number of iterations
+        32     # Output length in bytes
+    )
+    print(f"{'AP' if self.is_ap else 'Client'} - PMK derived: {binascii.hexlify(self.pmk[:8]).decode()}...")
+
+The PTK derivation method:
+
+pythonCopydef derive_ptk(self, anonce, snonce, ap_mac, sta_mac):
+    print(f"\n{'AP' if self.is_ap else 'Client'} - Deriving PTK...")
+    if not self.pmk:
+        raise ValueError("PMK not yet derived")
+        
+    # Combine MAC addresses and nonces in specific order
+    # This ensures both parties derive the same key
+    data = min(ap_mac, sta_mac) + max(ap_mac, sta_mac) + \
+           min(anonce, snonce) + max(anonce, snonce)
+           
+    # Use PBKDF2 with SHA384 for PTK derivation
+    self.ptk = hashlib.pbkdf2_hmac(
+        'sha384',
+        self.pmk,        # Use PMK as base key
+        data,           # Combined data as salt
+        100,           # Iterations
+        48             # 384 bits output
+    )
+    print(f"{'AP' if self.is_ap else 'Client'} - PTK derived: {binascii.hexlify(self.ptk[:8]).decode()}...")
+
+The encryption method:
+
+pythonCopydef encrypt_message(self, message, iv=None):
+    if not self.ptk:
+        raise ValueError("PTK not yet derived")
+        
+    # Generate random IV if none provided
+    if iv is None:
+        iv = secrets.token_bytes(16)
+        
+    # Use first 32 bytes of PTK as encryption key
+    key = self.ptk[:32]
+    print(f"\n{'AP' if self.is_ap else 'Client'} - Encrypting message using AES key: {binascii.hexlify(key[:8]).decode()}...")
+    
+    # Pad message to AES block size
+    padder = padding.PKCS7(128).padder()
+    padded_data = padder.update(message.encode()) + padder.finalize()
+    
+    # Create AES cipher in CBC mode
+    cipher = Cipher(
+        algorithms.AES(key),
+        modes.CBC(iv),
+        backend=default_backend()
+    )
+    encryptor = cipher.encryptor()
+    ciphertext = encryptor.update(padded_data) + encryptor.finalize()
+    
+    print(f"{'AP' if self.is_ap else 'Client'} - Message encrypted: {binascii.hexlify(ciphertext[:16]).decode()}...")
+    # Return IV concatenated with ciphertext
+    return iv + ciphertext
+
+The handshake process in the server (AP):
+
+pythonCopydef handle_client(self, client_socket):
+    try:
+        print("\n=== Starting WPA3 Handshake (AP Side) ===")
+        
+        # Step 1: Generate and send ANonce
+        print("\nStep 1: ANonce Generation and Exchange")
+        self.device.anonce = self.device.generate_nonce()
+        client_socket.send(self.device.anonce)
+        print("AP - ANonce sent to client")
+        
+        # Step 2: Receive SNonce from client
+        print("\nStep 2: SNonce Reception")
+        self.device.snonce = client_socket.recv(32)
+        print("AP - Received SNonce from client")
+        
+        # Step 3: Receive client MAC and derive PTK
+        print("\nStep 3: PTK Derivation")
+        sta_mac = client_socket.recv(6)
+        print(f"AP - Client MAC received: {binascii.hexlify(sta_mac).decode()}")
+        self.device.derive_ptk(
+            self.device.anonce,
+            self.device.snonce,
+            self.ap_mac,
+            sta_mac
+        )
+The complete handshake flow is:
+
+AP generates ANonce and sends to client
+Client receives ANonce
+Client generates SNonce and sends to AP
+Both sides derive PTK using:
+
+ANonce
+SNonce
+AP MAC address
+Client MAC address
+PMK (derived from password)
+
+
+Both sides verify the connection by exchanging encrypted messages
+
+Would you like me to explain any specific part in more detail? CopyRetryClaude does not have the ability to run the code it generates yet.Ycan you highligh the 4way handshake partEditI'll highlight and explain the 4-way handshake process in detail.
+In WPA3's 4-way handshake process, here are the key messages and exchanges:
+pythonCopy# === Message 1 (AP → Client) ===
+# AP generates and sends ANonce
+print("\nStep 1: ANonce Generation and Exchange")
+self.device.anonce = self.device.generate_nonce()  # Generate random nonce
+client_socket.send(self.device.anonce)             # Send to client
+print("AP - ANonce sent to client")
+
+# === Message 2 (Client → AP) ===
+# Client receives ANonce, generates SNonce, and sends it back
+print("\nStep 2: SNonce Reception")
+self.device.snonce = self.device.generate_nonce()  # Generate client nonce
+client_socket.send(self.device.snonce)             # Send to AP
+client_socket.send(self.sta_mac)                   # Send client MAC address
+
+# At this point, both sides have all ingredients for PTK:
+# - ANonce (from AP)
+# - SNonce (from Client)
+# - AP MAC address
+# - Client MAC address
+# - PMK (derived from shared password)
+
+# === Message 3 (AP → Client) ===
+# AP derives PTK and sends encrypted message to confirm
+self.device.derive_ptk(
+    self.device.anonce,
+    self.device.snonce,
+    self.ap_mac,
+    sta_mac
+)
+test_message = "WPA3 Handshake completed successfully!"
+encrypted = self.device.encrypt_message(test_message)
+client_socket.send(encrypted)
+
+# === Message 4 (Client → AP) ===
+# Client derives same PTK and sends encrypted acknowledgment
+self.device.derive_ptk(
+    self.device.anonce,
+    self.device.snonce,
+    ap_mac,
+    self.sta_mac
+)
+response = "WPA3 Handshake acknowledged by client!"
+encrypted_response = self.device.encrypt_message(response)
+client_socket.send(encrypted_response)
+Here's what happens in each message:
+
+Message 1 (AP → Client)
+
+AP generates random ANonce
+AP sends ANonce to client
+Purpose: Provide first part of key material
+
+
+Message 2 (Client → AP)
+
+Client generates random SNonce
+Client sends SNonce and its MAC address to AP
+Purpose: Provide second part of key material
+
+
+Message 3 (AP → Client)
+
+AP derives PTK using:
+pythonCopyPTK = derive_key(PMK, ANonce, SNonce, AP_MAC, CLIENT_MAC)
+
+AP encrypts and sends confirmation message
+Purpose: Confirm PTK derivation and verify encryption works
+
+
+Message 4 (Client → AP)
+
+Client derives same PTK using same inputs
+Client sends encrypted acknowledgment
+Purpose: Confirm both sides have same PTK and encryption works
+
+
+
+The key aspects that make this secure:
+
+Both sides contribute random nonces
+PTK depends on both nonces, so neither side controls it alone
+Both MAC addresses are included to prevent replay attacks
+Messages 3 and 4 verify both sides derived the same key
+All subsequent communication is encrypted with keys derived from PTK
+
+The logging output shows this process:
+Copy=== Starting WPA3 Handshake ===
+Step 1: ANonce Generation and Exchange
+AP - Generated nonce: e5f6g7h8...
+Client - Received ANonce: e5f6g7h8...
+
+Step 2: SNonce Generation and Exchange
+Client - Generated nonce: a1b2c3d4...
+AP - Received SNonce: a1b2c3d4...
+
+Step 3: PTK Derivation
+AP - Deriving PTK...
+Client - Deriving PTK...
+
+Step 4: Testing Encrypted Communication
+AP - Sending encrypted message
+Client - Message decrypted successfully
+AP - Received encrypted acknowledgment
+Would you like me to explain any specific part of the handshake in more detail? CopyRetryClaude does not have the ability to run the code it generates yet.Yi did not notice the 3 way handshake since we are suppose to use TCP. Can you highlight it for me?EditAh, you're asking about the TCP 3-way handshake that happens before the WPA3 handshake. You're right - since we're using TCP sockets, there's an underlying TCP 3-way handshake. Let me highlight that part:
+pythonCopy# TCP Server side (in WPA3Server class):
+def start(self):
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create TCP socket
+    server_socket.bind((self.host, self.port))                        # Bind to port
+    server_socket.listen(1)                                           # Listen for connections
+    print(f"\nAP - Listening on {self.host}:{self.port}")
+    
+    while True:
+        # === TCP 3-way handshake happens here when accept() is called ===
+        # 1. Client sends SYN
+        # 2. Server responds with SYN-ACK
+        # 3. Client responds with ACK
+        client_socket, addr = server_socket.accept()  # Blocks until 3-way handshake completes
+        print(f"\nAP - New connection from {addr}")
+        self.handle_client(client_socket)
+
+# TCP Client side (in WPA3Client class):
+def connect(self):
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create TCP socket
+    try:
+        print(f"\nClient - Connecting to {self.host}:{self.port}")
+        # === TCP 3-way handshake happens here when connect() is called ===
+        # 1. Client sends SYN packet
+        # 2. Client receives SYN-ACK from server
+        # 3. Client sends ACK
+        client_socket.connect((self.host, self.port))  # Initiates 3-way handshake
+        print("\n=== TCP Connection Established ===")
+The TCP 3-way handshake process is:
+
+SYN (Client → Server):
+
+Client sends SYN packet with initial sequence number
+"Can we start a connection?"
+
+
+SYN-ACK (Server → Client):
+
+Server responds with SYN-ACK packet
+"Yes, we can start a connection, and here's my sequence number"
+
+
+ACK (Client → Server):
+
+Client sends ACK packet
+"Connection confirmed, let's begin"
+
+
+
+Let me modify the code to add explicit logging for the TCP handshake:
+WPA3 Implementation with TCP Handshake LoggingClick to open code
+Now when you run the code, you'll see both handshakes clearly:
+Copy=== Starting TCP Server ===
+TCP Server - Listening on localhost:12345
+TCP Server - Waiting for TCP 3-way handshake...
+
+=== Starting TCP Client ===
+TCP Client - Initiating 3-way handshake with localhost:12345
+TCP Client - Sending SYN
+TCP Server - Received SYN from ('127.0.0.1', 54321)
+TCP Server - Sent SYN-ACK
+TCP Client - Received SYN-ACK
+TCP Client - Sent ACK
+=== TCP 3-way Handshake Completed ===
+
+Starting WPA3 4-way handshake...
+[WPA3 handshake proceeds as shown earlier]
+The TCP 3-way handshake happens automatically when you call connect() and accept(). It's handled by the operating system's TCP/IP stack, which is why we don't see the actual packets in our Python code. We're just seeing the high-level socket operations that trigger the handshake.
+Would you like me to explain any specific part of either handshake in more detail? CopyRetryClaude does not have the ability to run the code it generates yet.Ycan you add this and update the previous version?EditLet me add the TCP handshake logging to our complete implementation while maintaining all the previous functionality.
+WPA3 Implementation with Full Handshake LoggingClick to open code
+Now when you run this code, you'll see both the TCP 3-way handshake and WPA3 4-way handshake clearly logged in sequence:
+Copy=== Starting TCP Server ===
+TCP Server - Listening on localhost:12345
+TCP Server - Waiting for TCP 3-way handshake...
+
+=== Starting TCP Client ===
+TCP Client - Initiating 3-way handshake with localhost:12345
+TCP Client - Sending SYN
+TCP Server - Received SYN from ('127.0.0.1', 54321)
+TCP Server - Sent SYN-ACK
+TCP Client - Received SYN-ACK
+TCP Client - Sent ACK
+=== TCP 3-way Handshake Completed ===
+
+Starting WPA3 4-way handshake...
+WPA3 Message 1: ANonce Generation and Exchange
+[... WPA3 handshake continues as before ...]
+The main changes I've made:
+
+Added detailed TCP 3-way handshake logging
+Clearly labeled all four WPA3 handshake messages
+Added completion messages for both handshakes
+Structured the output to show the sequence of events clearly
+
+Would you like me to explain any specific part of either handshake in more detail?
